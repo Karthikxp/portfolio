@@ -1,4 +1,69 @@
+'use client';
+
+import { useState, useRef, useCallback, useEffect } from 'react';
+
 export default function Home() {
+  const [showHoverImage, setShowHoverImage] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState(0);
+  const [scale, setScale] = useState(0.5);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const requestRef = useRef<number | null>(null);
+  const prevCursorPosition = useRef({ x: 0, y: 0 });
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    const { clientX, clientY } = e;
+    const dx = clientX - prevCursorPosition.current.x;
+    const dy = clientY - prevCursorPosition.current.y;
+
+    // Apply easing to the cursor movement
+    const easeAmount = 0.2;
+    const newX = prevCursorPosition.current.x + dx * easeAmount;
+    const newY = prevCursorPosition.current.y + dy * easeAmount;
+
+    setCursorPosition({ x: newX, y: newY });
+    prevCursorPosition.current = { x: newX, y: newY };
+  }, []);
+
+  useEffect(() => {
+    const updateCursorPosition = (e: MouseEvent) => {
+      if (requestRef.current) return;
+      requestRef.current = requestAnimationFrame(() => {
+        handleMouseMove(e);
+        requestRef.current = null;
+      });
+    };
+
+    if (showHoverImage) {
+      window.addEventListener('mousemove', updateCursorPosition);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', updateCursorPosition);
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
+  }, [handleMouseMove, showHoverImage]);
+
+  const handlePitbullHover = useCallback(() => {
+    setShowHoverImage(true);
+    document.body.style.cursor = 'none'; // Hide cursor
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setOpacity(1);
+      setScale(1);
+    }, 50);
+  }, []);
+
+  const handlePitbullLeave = useCallback(() => {
+    setOpacity(0);
+    setScale(0.5);
+    document.body.style.cursor = 'auto'; // Restore cursor
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setShowHoverImage(false);
+    }, 100);
+  }, []);
+
   return (
     <main className="min-h-screen relative">
       <div 
@@ -151,28 +216,38 @@ export default function Home() {
         }}
       />
 
-      {/* Black Rectangle */}
+      {/* N.Pitbull Interactive Section */}
       <div 
-        className="absolute rounded-[5.68px] bg-black h-[196px]"
+        className="absolute"
         style={{
           left: '940px',
           top: '880px',
-          width: '196px'
+          width: '196px',
+          height: '196px',
+          cursor: 'none'
         }}
-      />
-
-      {/* N.Pitbull Text */}
-      <div 
-        className="absolute text-white"
-        style={{
-          left: '990px',
-          top: '966px',
-          width: '97px',
-          fontSize: '22px',
-          fontFamily: 'Dirtyline, sans-serif'
-        }}
+        onMouseEnter={handlePitbullHover}
+        onMouseLeave={handlePitbullLeave}
+        onClick={() => window.open('https://github.com/Karthikxp/Sidemen', '_blank')}
       >
-        N.Pitbull
+        {/* Black Rectangle */}
+        <div 
+          className="absolute rounded-[5.68px] bg-black h-[196px] w-[196px] transition-all duration-300 hover:scale-105"
+        />
+
+        {/* N.Pitbull Text */}
+        <div 
+          className="absolute text-white pointer-events-none"
+          style={{
+            left: '50px',
+            top: '86px',
+            width: '97px',
+            fontSize: '22px',
+            fontFamily: 'Dirtyline, sans-serif'
+          }}
+        >
+          Sidemen
+        </div>
       </div>
 
       {/* Second Rotated T */}
@@ -364,6 +439,24 @@ export default function Home() {
       >
         Designed & Developed by Karthik 
       </div>
+
+      {/* Floating Image on N.Pitbull Hover */}
+      {showHoverImage && (
+        <img
+          src="/m-sec.png"
+          alt="M-Sec Security"
+          className="fixed object-cover pointer-events-none z-50 rounded-lg shadow-2xl"
+          style={{
+            left: `${cursorPosition.x}px`,
+            top: `${cursorPosition.y}px`,
+            transform: `translate(-50%, -50%) scale(${scale})`,
+            opacity: opacity,
+            width: '300px',
+            height: '400px',
+            transition: 'opacity 0.3s ease, transform 0.3s ease'
+          }}
+        />
+      )}
     </main>
   );
 }

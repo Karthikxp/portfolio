@@ -255,6 +255,23 @@ export default function Home() {
           height: '346px'
         }}
       />
+
+      {/* Spotify Click Area */}
+      <div 
+        className="absolute cursor-pointer"
+        style={{
+          left: '1167px', // 940 + 227
+          top: '435px',   // 113 + 322
+          width: '24px',
+          height: '19px'
+        }}
+        onClick={() => {
+          if (track?.songUrl) {
+            window.open(track.songUrl, '_blank');
+          }
+        }}
+      />
+
       <div 
           className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
           style={{

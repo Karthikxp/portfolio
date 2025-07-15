@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 export default function Home() {
   const [showHoverImage, setShowHoverImage] = useState(false);
@@ -10,6 +10,15 @@ export default function Home() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const requestRef = useRef<number | null>(null);
   const prevCursorPosition = useRef({ x: 0, y: 0 });
+
+  // State for Karthik hover effect
+  const [showKarthikImage, setShowKarthikImage] = useState(false);
+  const [karthikCursorPosition, setKarthikCursorPosition] = useState({ x: 0, y: 0 });
+  const [karthikOpacity, setKarthikOpacity] = useState(0);
+  const [karthikScale, setKarthikScale] = useState(0.5);
+  const karthikTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const karthikRequestRef = useRef<number | null>(null);
+  const karthikPrevCursorPosition = useRef({ x: 0, y: 0 });
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientX, clientY } = e;
@@ -44,7 +53,46 @@ export default function Home() {
     };
   }, [handleMouseMove, showHoverImage]);
 
-  const handlePitbullHover = useCallback(() => {
+  // Karthik hover handlers
+  const handleKarthikMouseMove = useCallback((e: MouseEvent) => {
+    const { clientX, clientY } = e;
+    const dx = clientX - karthikPrevCursorPosition.current.x;
+    const dy = clientY - karthikPrevCursorPosition.current.y;
+
+    // Apply easing to the cursor movement
+    const easeAmount = 0.2;
+    const newX = karthikPrevCursorPosition.current.x + dx * easeAmount;
+    const newY = karthikPrevCursorPosition.current.y + dy * easeAmount;
+
+    setKarthikCursorPosition({ x: newX, y: newY });
+    karthikPrevCursorPosition.current = { x: newX, y: newY };
+  }, []);
+
+  useEffect(() => {
+    const updateKarthikCursorPosition = (e: MouseEvent) => {
+      if (karthikRequestRef.current) return;
+      karthikRequestRef.current = requestAnimationFrame(() => {
+        handleKarthikMouseMove(e);
+        karthikRequestRef.current = null;
+      });
+    };
+
+    if (showKarthikImage) {
+      window.addEventListener('mousemove', updateKarthikCursorPosition);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', updateKarthikCursorPosition);
+      if (karthikRequestRef.current) cancelAnimationFrame(karthikRequestRef.current);
+    };
+  }, [handleKarthikMouseMove, showKarthikImage]);
+
+  const handlePitbullHover = useCallback((e: React.MouseEvent) => {
+    // Initialize cursor position
+    const { clientX, clientY } = e;
+    setCursorPosition({ x: clientX, y: clientY });
+    prevCursorPosition.current = { x: clientX, y: clientY };
+    
     setShowHoverImage(true);
     document.body.style.cursor = 'none'; // Hide cursor
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -61,6 +109,31 @@ export default function Home() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       setShowHoverImage(false);
+    }, 100);
+  }, []);
+
+  const handleKarthikHover = useCallback((e: React.MouseEvent) => {
+    // Initialize cursor position
+    const { clientX, clientY } = e;
+    setKarthikCursorPosition({ x: clientX, y: clientY });
+    karthikPrevCursorPosition.current = { x: clientX, y: clientY };
+    
+    setShowKarthikImage(true);
+    document.body.style.cursor = 'none'; // Hide cursor
+    if (karthikTimeoutRef.current) clearTimeout(karthikTimeoutRef.current);
+    karthikTimeoutRef.current = setTimeout(() => {
+      setKarthikOpacity(1);
+      setKarthikScale(1);
+    }, 50);
+  }, []);
+
+  const handleKarthikLeave = useCallback(() => {
+    setKarthikOpacity(0);
+    setKarthikScale(0.5);
+    document.body.style.cursor = 'auto'; // Restore cursor
+    if (karthikTimeoutRef.current) clearTimeout(karthikTimeoutRef.current);
+    karthikTimeoutRef.current = setTimeout(() => {
+      setShowKarthikImage(false);
     }, 100);
   }, []);
 
@@ -84,7 +157,7 @@ export default function Home() {
         style={{
           left: '110px',
           top: '271px',
-          fontSize: '12.45px'
+          fontSize: '17.45px'
         }}
       >
         UI/UX designer, cybersecurity analyst, and full-stack developer—bridging aesthetics, security, and functionality. I design intuitive interfaces, build scalable software, and<br/>
@@ -141,7 +214,7 @@ export default function Home() {
 
       {/* Email Button */}
       <a
-        href="https://www.instagram.com/_.karthik_._/"
+        href="mailto:karthik.manikandanmk@gmail.com"
         target="_blank"
         rel="noopener noreferrer"
         className="absolute"
@@ -166,263 +239,270 @@ export default function Home() {
         </div>
       </a>
 
-      {/* Sof. Projects Title */}
-      <div 
-        className="absolute text-black"
-        style={{
-          left: '110px',
-          top: '840px',
-          width: '153px',
-          height: '25px',
-          fontSize: '22.28px',
-          fontFamily: 'Dirtyline, sans-serif'
-        }}
-      >
-        Sof. Projects
-      </div>
-
-      {/* Rotated T */}
-      <div 
-        className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
-        style={{
-          left: '372px',
-          top: '846px'
-        }}
-      >
-        T
-      </div>
-
-      {/* Project Description */}
-      <div 
-        className="absolute text-black dongle-font"
-        style={{
-          left: '108px',
-          top: '987px',
-          width: '630px',
-          height: '36px',
-          fontSize: '12.45px'
-        }}
-      >
-        "Simplicity isn't about the lack of complexity—it's about making complexity effortless. Clean design, efficient code, and intuitive experiences define my approach. If it doesn't add value, it doesn't belong."
-      </div>
-
-      {/* Blurred Black Rectangle (Shadow/Depth) */}
-      <div 
-        className="absolute [filter:blur(16.9px)] rounded-[5.68px] bg-black h-[196px]"
-        style={{
-          left: '940px',
-          top: '888px',
-          width: '196px'
-        }}
-      />
-
-      {/* N.Pitbull Interactive Section */}
-      <div 
-        className="absolute"
-        style={{
-          left: '940px',
-          top: '880px',
-          width: '196px',
-          height: '196px',
-          cursor: 'none'
-        }}
-        onMouseEnter={handlePitbullHover}
-        onMouseLeave={handlePitbullLeave}
-        onClick={() => window.open('https://github.com/Karthikxp/Sidemen', '_blank')}
-      >
-        {/* Black Rectangle */}
+      {/* Software Projects Card */}
+      <div className="absolute" style={{ left: '0px', top: '840px', width: '100%', height: '300px' }}>
+        {/* Sof. Projects Title */}
         <div 
-          className="absolute rounded-[5.68px] bg-black h-[196px] w-[196px] transition-all duration-300 hover:scale-105"
-        />
-
-        {/* N.Pitbull Text */}
-        <div 
-          className="absolute text-white pointer-events-none"
+          className="absolute text-black"
           style={{
-            left: '50px',
-            top: '86px',
-            width: '97px',
-            fontSize: '22px',
+            left: '110px',
+            top: '0px',
+            width: '153px',
+            height: '25px',
+            fontSize: '22.28px',
             fontFamily: 'Dirtyline, sans-serif'
           }}
         >
-          Sidemen
+          Sof. Projects
+        </div>
+
+        {/* Rotated T */}
+        <div 
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          style={{
+            left: '372px',
+            top: '6px'
+          }}
+        >
+          T
+        </div>
+
+        {/* Project Description */}
+        <div 
+          className="absolute text-black dongle-font"
+          style={{
+            left: '108px',
+            top: '147px',
+            width: '630px',
+            height: '36px',
+            fontSize: '17px'
+          }}
+        >
+          "Simplicity isn't about the lack of complexity—it's about making complexity effortless. Clean design, efficient code, and intuitive experiences define my approach. If it doesn't add value, it doesn't belong."
+        </div>
+
+        {/* Blurred Black Rectangle (Shadow/Depth) */}
+        <div 
+          className="absolute [filter:blur(16.9px)] rounded-[5.68px] bg-black h-[196px]"
+          style={{
+            left: '940px',
+            top: '48px',
+            width: '196px'
+          }}
+        />
+
+        {/* N.Pitbull Interactive Section */}
+        <div 
+          className="absolute"
+          style={{
+            left: '940px',
+            top: '40px',
+            width: '196px',
+            height: '196px',
+            cursor: 'none'
+          }}
+          onMouseEnter={handlePitbullHover}
+          onMouseLeave={handlePitbullLeave}
+          onClick={() => window.open('https://github.com/Karthikxp/Sidemen', '_blank')}
+        >
+          {/* Black Rectangle */}
+          <div 
+            className="absolute rounded-[5.68px] bg-black h-[196px] w-[196px] transition-all duration-300 hover:scale-105"
+          />
+
+          {/* N.Pitbull Text */}
+          <div 
+            className="absolute text-white pointer-events-none"
+            style={{
+              left: '50px',
+              top: '86px',
+              width: '97px',
+              fontSize: '22px',
+              fontFamily: 'Dirtyline, sans-serif'
+            }}
+          >
+            Sidemen
+          </div>
+        </div>
+
+        {/* Second Rotated T */}
+        <div 
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          style={{
+            left: '1340px',
+            top: '219px'
+          }}
+        >
+          T
         </div>
       </div>
 
-      {/* Second Rotated T */}
-      <div 
-        className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
-        style={{
-          left: '1340px',
-          top: '1059px'
-        }}
-      >
-        T
+      {/* Principles Card */}
+      <div className="absolute" style={{ left: '0px', top: '1423px', width: '100%', height: '300px' }}>
+        {/* Principles Title */}
+        <div 
+          className="absolute text-black"
+          style={{
+            left: '110px',
+            top: '0px',
+            width: '153px',
+            height: '25px',
+            fontSize: '22.28px',
+            fontFamily: 'Dirtyline, sans-serif'
+          }}
+        >
+          Principles
+        </div>
+
+        {/* Rotated T */}
+        <div 
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          style={{
+            left: '372px',
+            top: '6px'
+          }}
+        >
+          T
+        </div>
+
+        {/* Project Description */}
+        <div 
+          className="absolute text-black dongle-font"
+          style={{
+            left: '108px',
+            top: '147px',
+            width: '630px',
+            height: '36px',
+            fontSize: '17px'
+          }}
+        >
+          "Simplicity isn't about the lack of complexity—it's about making complexity effortless. Clean design, efficient code, and intuitive experiences define my approach. If it doesn't add value, it doesn't belong."
+        </div>
+
+        {/* Black Rectangle */}
+        <div 
+          className="absolute rounded-[5.68px] border-black border-solid border-[1px] box-border h-[196px]"
+          style={{
+            left: '940px',
+            top: '40px',
+            width: '196px'
+          }}
+        />
+
+        {/* Simplicity Text */}
+        <div 
+          className="absolute text-white"
+          style={{
+            left: '990px',
+            top: '126px',
+            width: '97px',
+            fontSize: '22px',
+            fontFamily: 'Dirtyline, sans-serif',
+            color: '#000000'
+          }}
+        >
+          Simplicity
+        </div>
+
+        {/* Second Rotated T */}
+        <div 
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          style={{
+            left: '1340px',
+            top: '219px'
+          }}
+        >
+          T
+        </div>
       </div>
 
-      {/* CLONED SECTION - Starting at 1423px */}
-      
-      {/* Sof. Projects Title - Clone */}
-      <div 
-        className="absolute text-black"
-        style={{
-          left: '110px',
-          top: '1423px',
-          width: '153px',
-          height: '25px',
-          fontSize: '22.28px',
-          fontFamily: 'Dirtyline, sans-serif'
-        }}
-      >
-        Principles
-      </div>
+      {/* Philosophy Card */}
+      <div className="absolute" style={{ left: '0px', top: '1977px', width: '100%', height: '450px' }}>
+        {/* EVOLVE Text */}
+        <div 
+          className="absolute text-black bubbler-one-font text-left"
+          style={{
+            left: '50%',
+            top: '0px',
+            width: '588px',
+            fontSize: '22.28px',
+            letterSpacing: '4.74em',
+            transform: 'translateX(-50%)'
+          }}
+        >
+          EVOLVE
+        </div>
 
-      {/* Rotated T - Clone */}
-      <div 
-        className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
-        style={{
-          left: '372px',
-          top: '1429px'
-        }}
-      >
-        T
-      </div>
+        {/* Tamil Text */}
+        <div 
+          className="absolute text-black bubbler-one-font text-center"
+          style={{
+            left: '50%',
+            top: '167px',
+            width: '323px',
+            fontSize: '12px',
+            letterSpacing: '0.13em',
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <p className="m-0">ஒளிவல்ல செய்யலால் கல்விவல்லார் கற்றல்</p>
+          <p className="m-0">களிவல்ல மற்று நிலைத்து.</p>
+        </div>
 
-      {/* Project Description - Clone */}
-      <div 
-        className="absolute text-black dongle-font"
-        style={{
-          left: '108px',
-          top: '1570px',
-          width: '630px',
-          height: '36px',
-          fontSize: '12.45px'
-        }}
-      >
-        "Simplicity isn't about the lack of complexity—it's about making complexity effortless. Clean design, efficient code, and intuitive experiences define my approach. If it doesn't add value, it doesn't belong."
-      </div>
+        {/* Edify Text */}
+        <div 
+          className="absolute text-black text-left"
+          style={{
+            left: '110px',
+            top: '308px',
+            width: '54px',
+            fontSize: '22.28px',
+            fontFamily: 'Dirtyline, sans-serif'
+          }}
+        >
+          Edify
+        </div>
 
-      {/* Black Rectangle - Clone */}
-      <div 
-        className="absolute rounded-[5.68px] border-black border-solid border-[1px] box-border h-[196px]"
-        style={{
-          left: '940px',
-          top: '1463px',
-          width: '196px'
-        }}
-      />
+        {/* Ver. 396 Text */}
+        <div 
+          className="absolute text-black bubbler-one-font text-left"
+          style={{
+            left: '1126px',
+            top: '301px',
+            width: '70px',
+            fontSize: '12px',
+            letterSpacing: '0.13em'
+          }}
+        >
+          ver. 396
+        </div>
 
-      {/* N.Pitbull Text - Clone */}
-      <div 
-        className="absolute text-white"
-        style={{
-          left: '990px',
-          top: '1549px',
-          width: '97px',
-          fontSize: '22px',
-          fontFamily: 'Dirtyline, sans-serif',
-          color: '#000000'
-        }}
-      >
-        Simplicity
-      </div>
+        {/* Rotated T below ver. 396 */}
+        <div 
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          style={{
+            left: '1340px',
+            top: '421px'
+          }}
+        >
+          T
+        </div>
 
-      {/* Second Rotated T - Clone */}
-      <div 
-        className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
-        style={{
-          left: '1340px',
-          top: '1642px'
-        }}
-      >
-        T
-      </div>
-
-      {/* EVOLVE Text */}
-      <div 
-        className="absolute text-black bubbler-one-font text-left"
-        style={{
-          left: '50%',
-          top: '1977px',
-          width: '588px',
-          fontSize: '22.28px',
-          letterSpacing: '4.74em',
-          transform: 'translateX(-50%)'
-        }}
-      >
-        EVOLVE
-      </div>
-
-      {/* Tamil Text */}
-      <div 
-        className="absolute text-black bubbler-one-font text-center"
-        style={{
-          left: '50%',
-          top: '2144px',
-          width: '323px',
-          fontSize: '12px',
-          letterSpacing: '0.13em',
-          transform: 'translateX(-50%)'
-        }}
-      >
-        <p className="m-0">ஒளிவல்ல செய்யலால் கல்விவல்லார் கற்றல்</p>
-        <p className="m-0">களிவல்ல மற்று நிலைத்து.</p>
-      </div>
-
-      {/* Edify Text */}
-      <div 
-        className="absolute text-black text-left"
-        style={{
-          left: '110px',
-          top: '2285px',
-          width: '54px',
-          fontSize: '22.28px',
-          fontFamily: 'Dirtyline, sans-serif'
-        }}
-      >
-        Edify
-      </div>
-
-      {/* Ver. 396 Text */}
-      <div 
-        className="absolute text-black bubbler-one-font text-left"
-        style={{
-          left: '1126px',
-          top: '2278px',
-          width: '70px',
-          fontSize: '12px',
-          letterSpacing: '0.13em'
-        }}
-      >
-        ver. 396
-      </div>
-
-      {/* Rotated T below ver. 396 */}
-      <div 
-        className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
-        style={{
-          left: '1340px',
-          top: '2398px'
-        }}
-      >
-        T
-      </div>
-
-            {/* Learning Quote Text */}
-      <div 
-        className="absolute text-black bubbler-one-font text-left"
-        style={{
-          left: '50%',
-          top: '2398px',
-          width: '600px',
-          fontSize: '12px',
-          letterSpacing: '0.13em',
-          height: '14px',
-          transform: 'translateX(-50%)'
-        }}
-      >
-        The truly wise never stop learning, as knowledge itself keeps evolving like an endless treasure.
+        {/* Learning Quote Text */}
+        <div 
+          className="absolute text-black bubbler-one-font text-left"
+          style={{
+            left: '50%',
+            top: '421px',
+            width: '600px',
+            fontSize: '12px',
+            letterSpacing: '0.13em',
+            height: '14px',
+            transform: 'translateX(-50%)'
+          }}
+        >
+          The truly wise never stop learning, as knowledge itself keeps evolving like an endless treasure.
+        </div>
       </div>
 
       {/* Designed & Developed by Karthik */}
@@ -437,7 +517,14 @@ export default function Home() {
           transform: 'translateX(-50%)'
         }}
       >
-        Designed & Developed by Karthik 
+        Designed & Developed by{' '}
+        <span 
+          className="cursor-pointer hover:underline"
+          onMouseEnter={handleKarthikHover}
+          onMouseLeave={handleKarthikLeave}
+        >
+          Karthik
+        </span>
       </div>
 
       {/* Floating Image on N.Pitbull Hover */}
@@ -451,6 +538,24 @@ export default function Home() {
             top: `${cursorPosition.y}px`,
             transform: `translate(-50%, -50%) scale(${scale})`,
             opacity: opacity,
+            width: '300px',
+            height: '400px',
+            transition: 'opacity 0.3s ease, transform 0.3s ease'
+          }}
+        />
+      )}
+
+      {/* Floating Image on Karthik Hover */}
+      {showKarthikImage && (
+        <img
+          src="/eggy.png"
+          alt="Eggy"
+          className="fixed object-cover pointer-events-none z-50 rounded-lg shadow-2xl"
+          style={{
+            left: `${karthikCursorPosition.x}px`,
+            top: `${karthikCursorPosition.y}px`,
+            transform: `translate(-50%, -100%) scale(${karthikScale})`,
+            opacity: karthikOpacity,
             width: '300px',
             height: '400px',
             transition: 'opacity 0.3s ease, transform 0.3s ease'

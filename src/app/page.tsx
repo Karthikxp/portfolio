@@ -24,6 +24,15 @@ export default function Home() {
   // Spotify integration
   const { track, loading } = useSpotify();
 
+  // State for Spotify card hover effect
+  const [showSpotifyImage, setShowSpotifyImage] = useState(false);
+  const [spotifyCursorPosition, setSpotifyCursorPosition] = useState({ x: 0, y: 0 });
+  const [spotifyOpacity, setSpotifyOpacity] = useState(0);
+  const [spotifyScale, setSpotifyScale] = useState(0.5);
+  const spotifyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const spotifyRequestRef = useRef<number | null>(null);
+  const spotifyPrevCursorPosition = useRef({ x: 0, y: 0 });
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientX, clientY } = e;
     const dx = clientX - prevCursorPosition.current.x;
@@ -72,6 +81,21 @@ export default function Home() {
     karthikPrevCursorPosition.current = { x: newX, y: newY };
   }, []);
 
+  // Spotify hover handlers
+  const handleSpotifyMouseMove = useCallback((e: MouseEvent) => {
+    const { clientX, clientY } = e;
+    const dx = clientX - spotifyPrevCursorPosition.current.x;
+    const dy = clientY - spotifyPrevCursorPosition.current.y;
+
+    // Apply easing to the cursor movement
+    const easeAmount = 0.2;
+    const newX = spotifyPrevCursorPosition.current.x + dx * easeAmount;
+    const newY = spotifyPrevCursorPosition.current.y + dy * easeAmount;
+
+    setSpotifyCursorPosition({ x: newX, y: newY });
+    spotifyPrevCursorPosition.current = { x: newX, y: newY };
+  }, []);
+
   useEffect(() => {
     const updateKarthikCursorPosition = (e: MouseEvent) => {
       if (karthikRequestRef.current) return;
@@ -90,6 +114,25 @@ export default function Home() {
       if (karthikRequestRef.current) cancelAnimationFrame(karthikRequestRef.current);
     };
   }, [handleKarthikMouseMove, showKarthikImage]);
+
+  useEffect(() => {
+    const updateSpotifyCursorPosition = (e: MouseEvent) => {
+      if (spotifyRequestRef.current) return;
+      spotifyRequestRef.current = requestAnimationFrame(() => {
+        handleSpotifyMouseMove(e);
+        spotifyRequestRef.current = null;
+      });
+    };
+
+    if (showSpotifyImage) {
+      window.addEventListener('mousemove', updateSpotifyCursorPosition);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', updateSpotifyCursorPosition);
+      if (spotifyRequestRef.current) cancelAnimationFrame(spotifyRequestRef.current);
+    };
+  }, [handleSpotifyMouseMove, showSpotifyImage]);
 
   const handlePitbullHover = useCallback((e: React.MouseEvent) => {
     // Initialize cursor position
@@ -138,6 +181,31 @@ export default function Home() {
     if (karthikTimeoutRef.current) clearTimeout(karthikTimeoutRef.current);
     karthikTimeoutRef.current = setTimeout(() => {
       setShowKarthikImage(false);
+    }, 100);
+  }, []);
+
+  const handleSpotifyHover = useCallback((e: React.MouseEvent) => {
+    // Initialize cursor position
+    const { clientX, clientY } = e;
+    setSpotifyCursorPosition({ x: clientX, y: clientY });
+    spotifyPrevCursorPosition.current = { x: clientX, y: clientY };
+    
+    setShowSpotifyImage(true);
+    document.body.style.cursor = 'none'; // Hide cursor
+    if (spotifyTimeoutRef.current) clearTimeout(spotifyTimeoutRef.current);
+    spotifyTimeoutRef.current = setTimeout(() => {
+      setSpotifyOpacity(1);
+      setSpotifyScale(1);
+    }, 50);
+  }, []);
+
+  const handleSpotifyLeave = useCallback(() => {
+    setSpotifyOpacity(0);
+    setSpotifyScale(0.5);
+    document.body.style.cursor = 'auto'; // Restore cursor
+    if (spotifyTimeoutRef.current) clearTimeout(spotifyTimeoutRef.current);
+    spotifyTimeoutRef.current = setTimeout(() => {
+      setShowSpotifyImage(false);
     }, 100);
   }, []);
 
@@ -252,25 +320,19 @@ export default function Home() {
           left: '940px',
           top: '113px',
           width: '254px',
-          height: '346px'
+          height: '346px',
+          cursor: 'none'
         }}
-      />
-
-      {/* Spotify Click Area */}
-      <div 
-        className="absolute cursor-pointer"
-        style={{
-          left: '1167px', // 940 + 227
-          top: '435px',   // 113 + 322
-          width: '24px',
-          height: '19px'
-        }}
+        onMouseEnter={handleSpotifyHover}
+        onMouseLeave={handleSpotifyLeave}
         onClick={() => {
           if (track?.songUrl) {
             window.open(track.songUrl, '_blank');
           }
         }}
       />
+
+
 
       <div 
           className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
@@ -623,6 +685,24 @@ export default function Home() {
             opacity: karthikOpacity,
             width: '300px',
             height: '400px',
+            transition: 'opacity 0.3s ease, transform 0.3s ease'
+          }}
+        />
+      )}
+
+      {/* Floating Album Cover on Spotify Hover */}
+      {showSpotifyImage && track?.albumImageUrl && (
+        <img
+          src={track.albumImageUrl}
+          alt={`${track.title} album cover`}
+          className="fixed object-cover pointer-events-none z-50 rounded-lg shadow-2xl"
+          style={{
+            left: `${spotifyCursorPosition.x}px`,
+            top: `${spotifyCursorPosition.y}px`,
+            transform: `translate(-50%, -50%) scale(${spotifyScale})`,
+            opacity: spotifyOpacity,
+            width: '300px',
+            height: '300px',
             transition: 'opacity 0.3s ease, transform 0.3s ease'
           }}
         />

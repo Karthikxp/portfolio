@@ -8,6 +8,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'CFChristmasStitch';
+  src: url('/fonts/CFChristmasStitchRegular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 .days-one-font {
   font-family: var(--font-days-one), sans-serif;
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useSpotify } from '../hooks/useSpotify';
 
 export default function Home() {
   const [showHoverImage, setShowHoverImage] = useState(false);
@@ -19,6 +20,9 @@ export default function Home() {
   const karthikTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const karthikRequestRef = useRef<number | null>(null);
   const karthikPrevCursorPosition = useRef({ x: 0, y: 0 });
+
+  // Spotify integration
+  const { track, loading } = useSpotify();
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientX, clientY } = e;
@@ -160,8 +164,8 @@ export default function Home() {
           fontSize: '17.45px'
         }}
       >
-        UI/UX designer, cybersecurity analyst, and full-stack developer—bridging aesthetics, security, and functionality. I design intuitive interfaces, build scalable software, and<br/>
-        secure digital ecosystems. Always learning, always building.
+        UI/UX designer, cybersecurity analyst, and full-stack developer—bridging aesthetics, security, and functionality. I design <br/>
+        intuitive interfaces, build scalable software, and secure digital ecosystems. Always learning, always building.
       </div>
 
       {/* GitHub Icon */}
@@ -238,6 +242,50 @@ export default function Home() {
           @
         </div>
       </a>
+
+      {/* Spotify Card */}
+      <img 
+        src="/spoticard.png" 
+        alt="Spotify Card"
+        className="absolute"
+        style={{
+          left: '940px',
+          top: '113px',
+          width: '254px',
+          height: '346px'
+        }}
+      />
+      <div 
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          style={{
+            left: '1340px',
+            top: '415px'
+          }}
+        >
+          T
+        </div>
+
+
+      {/* Spotify Now Playing */}
+      <div 
+        className="absolute text-white text-left"
+        style={{
+          left: '957px',
+          top: '390px',
+          width: '200px',
+          fontSize: '11.7px',
+          letterSpacing: '0.13em',
+          fontFamily: 'CFChristmasStitch, sans-serif'
+        }}
+      >
+        {loading ? (
+          'Loading...'
+        ) : track ? (
+          `${track.title}.${track.artist}`
+        ) : (
+          'Nenjukkule.AR Rahman'
+        )}
+      </div>
 
       {/* Software Projects Card */}
       <div className="absolute" style={{ left: '0px', top: '840px', width: '100%', height: '300px' }}>

@@ -13,8 +13,12 @@ export const useSpotify = () => {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
+    // Prevent multiple fetches
+    if (hasFetched) return;
+
     const fetchSpotifyData = async () => {
       try {
         setLoading(true);
@@ -40,16 +44,13 @@ export const useSpotify = () => {
         });
       } finally {
         setLoading(false);
+        setHasFetched(true);
       }
     };
 
+    // Fetch only once on component mount
     fetchSpotifyData();
-
-    // Refresh data every 30 seconds
-    const interval = setInterval(fetchSpotifyData, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  }, [hasFetched]);
 
   return { track, loading, error };
 }; 

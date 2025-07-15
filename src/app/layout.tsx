@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Days_One, Dongle, Bubbler_One } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +11,24 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const daysOne = Days_One({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-days-one",
+});
+
+const dongle = Dongle({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-dongle",
+});
+
+const bubblerOne = Bubbler_One({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-bubbler-one",
 });
 
 export const metadata: Metadata = {
@@ -24,8 +43,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link 
+          rel="preload" 
+          href="/fonts/dirtyline.otf" 
+          as="font" 
+          type="font/otf" 
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${daysOne.variable} ${dongle.variable} ${bubblerOne.variable} antialiased`}
       >
         {children}
       </body>

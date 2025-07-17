@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { HyperText } from "@/components/magicui/hyper-text";
+import TiltedCard from "@/components/TiltedCard";
 
 export default function Home() {
   const [showHoverImage, setShowHoverImage] = useState(false);
@@ -28,6 +30,13 @@ export default function Home() {
   const sentnlTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const sentnlRequestRef = useRef<number | null>(null);
   const sentnlPrevCursorPosition = useRef({ x: 0, y: 0 });
+
+  // State for Software Projects / Designs toggle
+  const [isDesignMode, setIsDesignMode] = useState(false);
+
+  // State for Design Card Collaboration tooltip
+  const [showCollabTooltip, setShowCollabTooltip] = useState(false);
+  const [collabTooltipPosition, setCollabTooltipPosition] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientX, clientY } = e;
@@ -131,6 +140,9 @@ export default function Home() {
   }, [handleSentnlMouseMove, showSentnlImage]);
 
   const handlePitbullHover = useCallback((e: React.MouseEvent) => {
+    // Don't show popup in design mode
+    if (isDesignMode) return;
+    
     // Initialize cursor position
     const { clientX, clientY } = e;
     setCursorPosition({ x: clientX, y: clientY });
@@ -143,7 +155,7 @@ export default function Home() {
       setOpacity(1);
       setScale(1);
     }, 50);
-  }, []);
+  }, [isDesignMode]);
 
   const handlePitbullLeave = useCallback(() => {
     setOpacity(0);
@@ -203,6 +215,31 @@ export default function Home() {
     sentnlTimeoutRef.current = setTimeout(() => {
       setShowSentnlImage(false);
     }, 100);
+  }, []);
+
+  // Design Card Collaboration handlers
+  const handleDesignCardHover = useCallback((e: React.MouseEvent) => {
+    if (!isDesignMode) return;
+    
+    const { clientX, clientY } = e;
+    setCollabTooltipPosition({ x: clientX, y: clientY });
+    setShowCollabTooltip(true);
+  }, [isDesignMode]);
+
+  const handleDesignCardMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDesignMode || !showCollabTooltip) return;
+    
+    const { clientX, clientY } = e;
+    setCollabTooltipPosition({ x: clientX, y: clientY });
+  }, [isDesignMode, showCollabTooltip]);
+
+  const handleDesignCardLeave = useCallback(() => {
+    setShowCollabTooltip(false);
+  }, []);
+
+  const handleCollabClick = useCallback(() => {
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=karthik.manikandanmk@gmail.com&su=Let's%20collaborate!`;
+    window.open(gmailUrl, '_blank');
   }, []);
 
   return (
@@ -317,6 +354,46 @@ export default function Home() {
           T
         </div>
 
+      {/* Scroll Indicator */}
+      <div 
+        className="absolute w-[126px] h-[34px] rounded-[5px] cursor-pointer"
+        style={{
+          left: '50%',
+          top: '75%',
+          transform: 'translate(-50%, -50%)'
+        }}
+        onClick={() => {
+          const targetPosition = 600;
+          const startPosition = window.pageYOffset;
+          const distance = targetPosition - startPosition;
+          const duration = 1500; // 1.5 seconds for smoother scroll
+          let start: number | null = null;
+
+          function animation(currentTime: number) {
+            if (start === null) start = currentTime;
+            const timeElapsed = currentTime - start;
+            const run = ease(timeElapsed, startPosition, distance, duration);
+            window.scrollTo(0, run);
+            if (timeElapsed < duration) requestAnimationFrame(animation);
+          }
+
+          function ease(t: number, b: number, c: number, d: number) {
+            t /= d / 2;
+            if (t < 1) return c / 2 * t * t + b;
+            t--;
+            return -c / 2 * (t * (t - 2) - 1) + b;
+          }
+
+          requestAnimationFrame(animation);
+        }}
+      >
+        <div className="w-[126px] h-[31px] left-0 top-[1px] absolute bg-black rounded-[5px] blur-[3.45px]" />
+        <div className="w-[126px] h-[31px] left-0 top-[1px] absolute bg-black rounded-[5px]" />
+        <div className="left-[70px] top-0 absolute origin-top-left rotate-90 justify-start text-white text-[11.11px] font-normal font-['Maddac']">=</div>
+        <div className="left-[70px] top-[27px] absolute origin-top-left rotate-90 justify-start text-white text-[11.11px] font-normal font-['Maddac']">=</div>
+        <div className="left-[50px] top-[9px] absolute justify-start text-white text-[11.11px] font-normal font-['Maddac']">SCROLL</div>
+      </div>
+
       {/* Software Projects Card */}
       <div className="absolute" style={{ left: '0px', top: '840px', width: '100%', height: '300px' }}>
         {/* Sof. Projects Title */}
@@ -325,43 +402,120 @@ export default function Home() {
           style={{
             left: '110px',
             top: '0px',
-            width: '153px',
+            width: '250px',
             height: '25px',
             fontSize: '22.28px',
-            fontFamily: 'Dirtyline, sans-serif'
+            fontFamily: 'Dirtyline, sans-serif',
+            overflow: 'hidden'
           }}
         >
-          Sof. Projects
+          <HyperText
+            className="text-black !text-[22.28px] !font-normal !py-0 !whitespace-nowrap"
+            style={{ 
+              fontFamily: 'Dirtyline, sans-serif !important',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden'
+            }}
+            duration={800}
+            animateOnHover={false}
+            startOnView={false}
+            key={isDesignMode ? 'designs' : 'projects'}
+          >
+            {isDesignMode ? 'Designs' : 'Sof. Projects'}
+          </HyperText>
         </div>
 
         {/* Rotated T */}
         <div 
-          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0] cursor-pointer hover:text-gray-600 transition-colors"
           style={{
             left: '372px',
             top: '6px'
+          }}
+          onClick={() => {
+            console.log('T clicked! Current mode:', isDesignMode);
+            setIsDesignMode(!isDesignMode);
           }}
         >
           T
         </div>
 
-        {/* Project Description */}
+                {/* Project Description */}
         <div 
           className="absolute text-black dongle-font"
           style={{
             left: '108px',
             top: '147px',
             width: '630px',
-            height: '36px',
-            fontSize: '17px'
+            height: '54px',
+            fontSize: '17px',
+            lineHeight: '1.4',
+            overflow: 'hidden'
           }}
         >
-          "Simplicity isn't about the lack of complexity—it's about making complexity effortless. Clean design, efficient code, and intuitive experiences define my approach. If it doesn't add value, it doesn't belong."
+          {isDesignMode ? (
+            <div>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="design-line1"
+              >
+                I design stuff — apps, sites, posters basically anything that needs to look good and make
+              </HyperText>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="design-line2"
+              >
+                sense.
+              </HyperText>
+            </div>
+          ) : (
+            <div>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="projects-line1"
+              >
+                Embedded network server that monitors real-time IoT device activity with automatic threat detection and risk assessment. Authenticates users using blockchain contracts and handles potential security threats
+              </HyperText>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="projects-line2"
+              >
+                Autonomously.
+              </HyperText>
+            </div>
+          )}
         </div>
 
-        {/* Blurred Black Rectangle (Shadow/Depth) */}
         <div 
-          className="absolute [filter:blur(16.9px)] rounded-[5.68px] bg-black h-[196px]"
+          className={`absolute [filter:blur(16.9px)] rounded-[5.68px] bg-black h-[196px] transition-opacity duration-700 ease-in-out ${isDesignMode ? 'opacity-0' : 'opacity-100'}`}
           style={{
             left: '940px',
             top: '48px',
@@ -369,7 +523,7 @@ export default function Home() {
           }}
         />
 
-        {/* N.Pitbull Interactive Section */}
+        {/* Sidemen Interactive Section */}
         <div 
           className="absolute"
           style={{
@@ -377,29 +531,86 @@ export default function Home() {
             top: '40px',
             width: '196px',
             height: '196px',
-            cursor: 'none'
+            cursor: isDesignMode ? 'pointer' : 'none',
+            perspective: '1000px'
           }}
-          onMouseEnter={handlePitbullHover}
-          onMouseLeave={handlePitbullLeave}
-          onClick={() => window.open('https://github.com/Karthikxp/Sidemen', '_blank')}
+          onMouseEnter={isDesignMode ? handleDesignCardHover : handlePitbullHover}
+          onMouseLeave={isDesignMode ? handleDesignCardLeave : handlePitbullLeave}
+          onMouseMove={isDesignMode ? handleDesignCardMouseMove : undefined}
+          onClick={isDesignMode ? handleCollabClick : () => window.open('https://github.com/Karthikxp/Sidemen', '_blank')}
         >
-          {/* Black Rectangle */}
+          {/* Flip Container */}
           <div 
-            className="absolute rounded-[5.68px] bg-black h-[196px] w-[196px] transition-all duration-300 hover:scale-105"
-          />
-
-          {/* N.Pitbull Text */}
-          <div 
-            className="absolute text-white pointer-events-none"
+            className={`relative w-full h-full transition-transform duration-700 ${isDesignMode ? 'rotate-y-180' : ''}`}
             style={{
-              left: '50px',
-              top: '86px',
-              width: '97px',
-              fontSize: '22px',
-              fontFamily: 'Dirtyline, sans-serif'
+              transformStyle: 'preserve-3d'
             }}
           >
-            Sidemen
+            {/* Front Face - Sidemen */}
+            <div 
+              className="absolute inset-0 backface-hidden"
+              style={{
+                backfaceVisibility: 'hidden'
+              }}
+            >
+              {/* Black Rectangle */}
+              <div 
+                className="absolute rounded-[5.68px] bg-black h-[196px] w-[196px] transition-all duration-300 hover:scale-105"
+              />
+
+              {/* Sidemen Text */}
+              <div 
+                className="absolute text-white pointer-events-none"
+                style={{
+                  left: '50px',
+                  top: '86px',
+                  width: '97px',
+                  fontSize: '22px',
+                  fontFamily: 'Dirtyline, sans-serif'
+                }}
+              >
+                Sidemen
+              </div>
+            </div>
+
+            {/* Back Face - Design Template with Tilt Effect */}
+            <div 
+              className="absolute inset-0 rotate-y-180"
+              style={{
+                backfaceVisibility: 'hidden'
+              }}
+            >
+              <TiltedCard
+                imageSrc="/design-template.png"
+                altText="Design Template"
+                containerHeight="196px"
+                containerWidth="196px"
+                imageHeight="196px"
+                imageWidth="196px"
+                rotateAmplitude={18}
+                scaleOnHover={1.05}
+                showMobileWarning={false}
+                showTooltip={false}
+                displayOverlayContent={true}
+                overlayContent={
+                  <div 
+                    className="absolute whitespace-nowrap overflow-hidden"
+                    style={{
+                      left: '-54.41px',
+                      top: '18.14px',
+                      width: '300px',
+                      height: '30px'
+                    }}
+                  >
+                    <div className="scrolling-text-container">
+                      <div className="scrolling-text-content text-white text-[26.94px] font-normal font-['Dirtyline_36Daysoftype_2022']">
+                        Graphic . App . Web . Poster&nbsp;&nbsp;&nbsp;. Graphic . App . Web . Poster .&nbsp;&nbsp;&nbsp; Graphic . App . Web . Poster &nbsp;&nbsp;&nbsp;
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+            </div>
           </div>
         </div>
 
@@ -507,7 +718,7 @@ export default function Home() {
       {/* Philosophy Card */}
       <div className="absolute" style={{ left: '0px', top: '1977px', width: '100%', height: '450px' }}>
         {/* EVOLVE Text */}
-        <div 
+        {/* <div 
           className="absolute text-black bubbler-one-font text-left"
           style={{
             left: '50%',
@@ -519,10 +730,10 @@ export default function Home() {
           }}
         >
           EVOLVE
-        </div>
+        </div> */}
 
         {/* Tamil Text */}
-        <div 
+        {/* <div 
           className="absolute text-black bubbler-one-font text-center"
           style={{
             left: '50%',
@@ -535,10 +746,10 @@ export default function Home() {
         >
           <p className="m-0">ஒளிவல்ல செய்யலால் கல்விவல்லார் கற்றல்</p>
           <p className="m-0">களிவல்ல மற்று நிலைத்து.</p>
-        </div>
+        </div> */}
 
         {/* Edify Text */}
-        <div 
+        {/* <div 
           className="absolute text-black text-left"
           style={{
             left: '110px',
@@ -549,10 +760,10 @@ export default function Home() {
           }}
         >
           Edify
-        </div>
+        </div> */}
 
         {/* Ver. 396 Text */}
-        <div 
+        {/* <div 
           className="absolute text-black bubbler-one-font text-left"
           style={{
             left: '1126px',
@@ -563,10 +774,10 @@ export default function Home() {
           }}
         >
           ver. 396
-        </div>
+        </div> */}
 
         {/* Rotated T below ver. 396 */}
-        <div 
+        {/* <div 
           className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
           style={{
             left: '1340px',
@@ -574,10 +785,10 @@ export default function Home() {
           }}
         >
           T
-        </div>
+        </div> */}
 
         {/* Learning Quote Text */}
-        <div 
+        {/* <div 
           className="absolute text-black bubbler-one-font text-left"
           style={{
             left: '50%',
@@ -590,7 +801,7 @@ export default function Home() {
           }}
         >
           The truly wise never stop learning, as knowledge itself keeps evolving like an endless treasure.
-        </div>
+        </div> */}
       </div>
 
       {/* Designed & Developed by Karthik */}
@@ -667,6 +878,22 @@ export default function Home() {
             transition: 'opacity 0.3s ease, transform 0.3s ease'
           }}
         />
+      )}
+
+      {/* Collaboration Tooltip for Design Card */}
+      {showCollabTooltip && isDesignMode && (
+        <div
+          className="fixed pointer-events-auto z-50 bg-black text-white px-3 py-2 rounded-md shadow-lg cursor-pointer select-none"
+          style={{
+            left: `${collabTooltipPosition.x + 10}px`,
+            top: `${collabTooltipPosition.y - 40}px`,
+            fontSize: '7px',
+            fontFamily: 'Dirtyline, sans-serif'
+          }}
+          onClick={handleCollabClick}
+        >
+          Collab ?
+        </div>
       )}
     </main>
   );

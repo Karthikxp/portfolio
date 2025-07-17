@@ -16,6 +16,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Maddac';
+  src: url('/fonts/Maddac.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 .days-one-font {
   font-family: var(--font-days-one), sans-serif;
 }
@@ -28,8 +36,42 @@
   font-family: var(--font-bubbler-one), sans-serif;
 }
 
+.maddac-font {
+  font-family: 'Maddac', sans-serif;
+}
+
 body {
   background: white;
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 3D Flip Animation Styles */
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Scrolling Text Animation */
+.scrolling-text-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.scrolling-text-content {
+  display: inline-block;
+  white-space: nowrap;
+  animation: scrollLeft 12s linear infinite;
+}
+
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
 }

@@ -38,6 +38,9 @@ export default function Home() {
   const [showCollabTooltip, setShowCollabTooltip] = useState(false);
   const [collabTooltipPosition, setCollabTooltipPosition] = useState({ x: 0, y: 0 });
 
+  // State for Sidemen/C Sar toggle
+  const [showCSar, setShowCSar] = useState(false);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientX, clientY } = e;
     const dx = clientX - prevCursorPosition.current.x;
@@ -241,6 +244,11 @@ export default function Home() {
     const gmailUrl = `https://mail.google.com/mail/?view=cm&to=karthik.manikandanmk@gmail.com&su=Let's%20collaborate!`;
     window.open(gmailUrl, '_blank');
   }, []);
+
+  // Second T click handler for Sidemen/C Sar toggle
+  const handleSecondTClick = useCallback(() => {
+    setShowCSar(!showCSar);
+  }, [showCSar]);
 
   return (
     <main className="min-h-screen relative">
@@ -482,6 +490,48 @@ export default function Home() {
                 sense.
               </HyperText>
             </div>
+          ) : showCSar ? (
+            <div>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="csar-line1"
+              >
+                Deep learning meets satellite imagery — C-SAR denoises and colorizes raw SAR data.
+              </HyperText>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="csar-line2"
+              >
+                Powered by autoencoders, CNNs, and real-time UI.
+              </HyperText>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="csar-line3"
+              >
+                Built for researchers, analysts, and anyone who hates grayscale.
+              </HyperText>
+            </div>
           ) : (
             <div>
               <HyperText
@@ -537,7 +587,7 @@ export default function Home() {
           onMouseEnter={isDesignMode ? handleDesignCardHover : handlePitbullHover}
           onMouseLeave={isDesignMode ? handleDesignCardLeave : handlePitbullLeave}
           onMouseMove={isDesignMode ? handleDesignCardMouseMove : undefined}
-          onClick={isDesignMode ? handleCollabClick : () => window.open('https://github.com/Karthikxp/Sidemen', '_blank')}
+          onClick={isDesignMode ? handleCollabClick : (showCSar ? () => window.open('https://github.com/Karthikxp/C-SAR', '_blank') : () => window.open('https://github.com/Karthikxp/Sidemen', '_blank'))}
         >
           {/* Flip Container */}
           <div 
@@ -558,18 +608,31 @@ export default function Home() {
                 className="absolute rounded-[5.68px] bg-black h-[196px] w-[196px] transition-all duration-300 hover:scale-105"
               />
 
-              {/* Sidemen Text */}
+              {/* Sidemen/C Sar Text */}
               <div 
-                className="absolute text-white pointer-events-none"
+                className="absolute text-white pointer-events-none flex items-center justify-center"
                 style={{
-                  left: '50px',
-                  top: '86px',
-                  width: '97px',
+                  left: '0px',
+                  top: '0px',
+                  width: '196px',
+                  height: '196px',
                   fontSize: '22px',
                   fontFamily: 'Dirtyline, sans-serif'
                 }}
               >
-                Sidemen
+                <HyperText
+                  className="text-white !text-[22px] !font-normal !py-0"
+                  style={{ 
+                    fontFamily: 'Dirtyline, sans-serif !important',
+                    textAlign: 'center'
+                  }}
+                  duration={800}
+                  animateOnHover={false}
+                  startOnView={false}
+                  key={showCSar ? 'csar' : 'sidemen'}
+                >
+                  {showCSar ? 'C Sar' : 'Sidemen'}
+                </HyperText>
               </div>
             </div>
 
@@ -616,11 +679,12 @@ export default function Home() {
 
         {/* Second Rotated T */}
         <div 
-          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0] cursor-pointer hover:text-gray-600 transition-colors"
           style={{
             left: '1340px',
             top: '219px'
           }}
+          onClick={handleSecondTClick}
         >
           T
         </div>
@@ -826,11 +890,11 @@ export default function Home() {
         </span>
       </div>
 
-      {/* Floating Image on N.Pitbull Hover */}
+      {/* Floating Image on Hover */}
       {showHoverImage && (
         <img
-          src="/m-sec.png"
-          alt="M-Sec Security"
+          src={showCSar ? "/csar.png" : "/m-sec.png"}
+          alt={showCSar ? "C SAR" : "M-Sec Security"}
           className="fixed object-cover pointer-events-none z-50 rounded-lg shadow-2xl"
           style={{
             left: `${cursorPosition.x}px`,

@@ -20,6 +20,15 @@ export default function Home() {
   const karthikRequestRef = useRef<number | null>(null);
   const karthikPrevCursorPosition = useRef({ x: 0, y: 0 });
 
+  // State for Sentnl hover effect
+  const [showSentnlImage, setShowSentnlImage] = useState(false);
+  const [sentnlCursorPosition, setSentnlCursorPosition] = useState({ x: 0, y: 0 });
+  const [sentnlOpacity, setSentnlOpacity] = useState(0);
+  const [sentnlScale, setSentnlScale] = useState(0.5);
+  const sentnlTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const sentnlRequestRef = useRef<number | null>(null);
+  const sentnlPrevCursorPosition = useRef({ x: 0, y: 0 });
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientX, clientY } = e;
     const dx = clientX - prevCursorPosition.current.x;
@@ -87,6 +96,40 @@ export default function Home() {
     };
   }, [handleKarthikMouseMove, showKarthikImage]);
 
+  // Sentnl hover handlers
+  const handleSentnlMouseMove = useCallback((e: MouseEvent) => {
+    const { clientX, clientY } = e;
+    const dx = clientX - sentnlPrevCursorPosition.current.x;
+    const dy = clientY - sentnlPrevCursorPosition.current.y;
+
+    // Apply easing to the cursor movement
+    const easeAmount = 0.2;
+    const newX = sentnlPrevCursorPosition.current.x + dx * easeAmount;
+    const newY = sentnlPrevCursorPosition.current.y + dy * easeAmount;
+
+    setSentnlCursorPosition({ x: newX, y: newY });
+    sentnlPrevCursorPosition.current = { x: newX, y: newY };
+  }, []);
+
+  useEffect(() => {
+    const updateSentnlCursorPosition = (e: MouseEvent) => {
+      if (sentnlRequestRef.current) return;
+      sentnlRequestRef.current = requestAnimationFrame(() => {
+        handleSentnlMouseMove(e);
+        sentnlRequestRef.current = null;
+      });
+    };
+
+    if (showSentnlImage) {
+      window.addEventListener('mousemove', updateSentnlCursorPosition);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', updateSentnlCursorPosition);
+      if (sentnlRequestRef.current) cancelAnimationFrame(sentnlRequestRef.current);
+    };
+  }, [handleSentnlMouseMove, showSentnlImage]);
+
   const handlePitbullHover = useCallback((e: React.MouseEvent) => {
     // Initialize cursor position
     const { clientX, clientY } = e;
@@ -134,6 +177,31 @@ export default function Home() {
     if (karthikTimeoutRef.current) clearTimeout(karthikTimeoutRef.current);
     karthikTimeoutRef.current = setTimeout(() => {
       setShowKarthikImage(false);
+    }, 100);
+  }, []);
+
+  const handleSentnlHover = useCallback((e: React.MouseEvent) => {
+    // Initialize cursor position
+    const { clientX, clientY } = e;
+    setSentnlCursorPosition({ x: clientX, y: clientY });
+    sentnlPrevCursorPosition.current = { x: clientX, y: clientY };
+    
+    setShowSentnlImage(true);
+    document.body.style.cursor = 'none'; // Hide cursor
+    if (sentnlTimeoutRef.current) clearTimeout(sentnlTimeoutRef.current);
+    sentnlTimeoutRef.current = setTimeout(() => {
+      setSentnlOpacity(1);
+      setSentnlScale(1);
+    }, 50);
+  }, []);
+
+  const handleSentnlLeave = useCallback(() => {
+    setSentnlOpacity(0);
+    setSentnlScale(0.5);
+    document.body.style.cursor = 'auto'; // Restore cursor
+    if (sentnlTimeoutRef.current) clearTimeout(sentnlTimeoutRef.current);
+    sentnlTimeoutRef.current = setTimeout(() => {
+      setShowSentnlImage(false);
     }, 100);
   }, []);
 
@@ -361,7 +429,7 @@ export default function Home() {
             fontFamily: 'Dirtyline, sans-serif'
           }}
         >
-          Principles
+          Working on
         </div>
 
         {/* Rotated T */}
@@ -386,32 +454,42 @@ export default function Home() {
             fontSize: '17px'
           }}
         >
-          "Simplicity isn't about the lack of complexity—it's about making complexity effortless. Clean design, efficient code, and intuitive experiences define my approach. If it doesn't add value, it doesn't belong."
+          Developing a financial forecasting app that leverages live economic releases, debt indicators, income data, and market <br/>
+          sentiment — fine-tuned with historical data — to predict daily market trends.
         </div>
 
-        {/* Black Rectangle */}
+        {/* Sentnl Interactive Section */}
         <div 
-          className="absolute rounded-[5.68px] border-black border-solid border-[1px] box-border h-[196px]"
+          className="absolute"
           style={{
             left: '940px',
             top: '40px',
-            width: '196px'
+            width: '196px',
+            height: '196px',
+            cursor: 'none'
           }}
-        />
-
-        {/* Simplicity Text */}
-        <div 
-          className="absolute text-white"
-          style={{
-            left: '990px',
-            top: '126px',
-            width: '97px',
-            fontSize: '22px',
-            fontFamily: 'Dirtyline, sans-serif',
-            color: '#000000'
-          }}
+          onMouseEnter={handleSentnlHover}
+          onMouseLeave={handleSentnlLeave}
+          onClick={() => window.open('https://github.com/Karthikxp', '_blank')}
         >
-          Simplicity
+          {/* Black Rectangle */}
+          <div 
+            className="absolute rounded-[5.68px] border-black border-solid border-[1px] box-border h-[196px] w-[196px] transition-all duration-300 hover:scale-105"
+          />
+
+          {/* Sentnl Text */}
+          <div 
+            className="absolute text-black pointer-events-none"
+            style={{
+              left: '60px',
+              top: '86px',
+              width: '97px',
+              fontSize: '22px',
+              fontFamily: 'Dirtyline, sans-serif'
+            }}
+          >
+            Sentnl
+          </div>
         </div>
 
         {/* Second Rotated T */}
@@ -566,6 +644,24 @@ export default function Home() {
             top: `${karthikCursorPosition.y}px`,
             transform: `translate(-50%, -100%) scale(${karthikScale})`,
             opacity: karthikOpacity,
+            width: '300px',
+            height: '400px',
+            transition: 'opacity 0.3s ease, transform 0.3s ease'
+          }}
+        />
+      )}
+
+      {/* Floating Image on Sentnl Hover */}
+      {showSentnlImage && (
+        <img
+          src="/sentnl.png"
+          alt="Sentnl"
+          className="fixed object-cover pointer-events-none z-50 rounded-lg shadow-2xl"
+          style={{
+            left: `${sentnlCursorPosition.x}px`,
+            top: `${sentnlCursorPosition.y}px`,
+            transform: `translate(-50%, -50%) scale(${sentnlScale})`,
+            opacity: sentnlOpacity,
             width: '300px',
             height: '400px',
             transition: 'opacity 0.3s ease, transform 0.3s ease'

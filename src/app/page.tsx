@@ -38,8 +38,8 @@ export default function Home() {
   const [showCollabTooltip, setShowCollabTooltip] = useState(false);
   const [collabTooltipPosition, setCollabTooltipPosition] = useState({ x: 0, y: 0 });
 
-  // State for Sidemen/C Sar toggle
-  const [showCSar, setShowCSar] = useState(false);
+  // State for project cycling (0: Sidemen, 1: C Sar, 2: Apts)
+  const [projectState, setProjectState] = useState(0);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientX, clientY } = e;
@@ -245,10 +245,10 @@ export default function Home() {
     window.open(gmailUrl, '_blank');
   }, []);
 
-  // Second T click handler for Sidemen/C Sar toggle
+  // Second T click handler for cycling through projects
   const handleSecondTClick = useCallback(() => {
-    setShowCSar(!showCSar);
-  }, [showCSar]);
+    setProjectState((prev) => (prev + 1) % 3); // Cycle through 0, 1, 2
+  }, []);
 
   return (
     <main className="min-h-screen relative">
@@ -490,7 +490,7 @@ export default function Home() {
                 sense.
               </HyperText>
             </div>
-          ) : showCSar ? (
+          ) : projectState === 1 ? (
             <div>
               <HyperText
                 className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
@@ -530,6 +530,35 @@ export default function Home() {
                 key="csar-line3"
               >
                 Built for researchers, analysts, and anyone who hates grayscale.
+              </HyperText>
+            </div>
+          ) : projectState === 2 ? (
+            <div>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="apts-line1"
+              >
+                Prioritizes ambulances using real-time siren and visual detection with audio sensors and computer vision.
+              </HyperText>
+              <HyperText
+                className="text-black !text-[17px] !font-normal !py-0 dongle-font block"
+                style={{ 
+                  fontFamily: 'inherit',
+                  overflow: 'hidden'
+                }}
+                duration={800}
+                animateOnHover={false}
+                startOnView={false}
+                key="apts-line2"
+              >
+                Dynamically overrides traffic signals to clear routes, ensuring faster emergency response and safer roads.
               </HyperText>
             </div>
           ) : (
@@ -587,7 +616,11 @@ export default function Home() {
           onMouseEnter={isDesignMode ? handleDesignCardHover : handlePitbullHover}
           onMouseLeave={isDesignMode ? handleDesignCardLeave : handlePitbullLeave}
           onMouseMove={isDesignMode ? handleDesignCardMouseMove : undefined}
-          onClick={isDesignMode ? handleCollabClick : (showCSar ? () => window.open('https://github.com/Karthikxp/C-SAR', '_blank') : () => window.open('https://github.com/Karthikxp/Sidemen', '_blank'))}
+          onClick={isDesignMode ? handleCollabClick : () => {
+            if (projectState === 0) window.open('https://github.com/Karthikxp/Sidemen', '_blank');
+            else if (projectState === 1) window.open('https://github.com/Karthikxp/C-SAR', '_blank');
+            else window.open('https://github.com/Karthikxp/Ambulance-Prioritized-Traffic-System', '_blank');
+          }}
         >
           {/* Flip Container */}
           <div 
@@ -629,9 +662,9 @@ export default function Home() {
                   duration={800}
                   animateOnHover={false}
                   startOnView={false}
-                  key={showCSar ? 'csar' : 'sidemen'}
+                  key={projectState === 0 ? 'sidemen' : projectState === 1 ? 'csar' : 'apts'}
                 >
-                  {showCSar ? 'C Sar' : 'Sidemen'}
+                  {projectState === 0 ? 'Sidemen' : projectState === 1 ? 'C Sar' : 'Apts'}
                 </HyperText>
               </div>
             </div>
@@ -893,8 +926,8 @@ export default function Home() {
       {/* Floating Image on Hover */}
       {showHoverImage && (
         <img
-          src={showCSar ? "/csar.png" : "/m-sec.png"}
-          alt={showCSar ? "C SAR" : "M-Sec Security"}
+          src={projectState === 0 ? "/m-sec.png" : projectState === 1 ? "/csar.png" : "/apts.png"}
+          alt={projectState === 0 ? "M-Sec Security" : projectState === 1 ? "C SAR" : "Apts"}
           className="fixed object-cover pointer-events-none z-50 rounded-lg shadow-2xl"
           style={{
             left: `${cursorPosition.x}px`,

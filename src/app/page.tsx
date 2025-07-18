@@ -251,6 +251,14 @@ export default function Home() {
     setProjectState((prev) => (prev + 1) % 3); // Cycle through 0, 1, 2
   }, []);
 
+  // Handle card rotation trigger
+  const handleCardRotation = useCallback(() => {
+    // This will be called from the T element click
+    if ((window as any).triggerCardRotation) {
+      (window as any).triggerCardRotation();
+    }
+  }, []);
+
   return (
     <main className="min-h-screen relative">
       {/* Lanyard Component */}
@@ -264,7 +272,7 @@ export default function Home() {
           zIndex: 10
         }}
       >
-        <Lanyard position={[0, 0, 20]} gravity={[0, -40, 0]} />
+        <Lanyard position={[0, 0, 20]} gravity={[0, -40, 0]} onRotateCard={handleCardRotation} />
       </div>
 
       <div 
@@ -368,11 +376,13 @@ export default function Home() {
       </a>
 
       <div 
-          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0] cursor-pointer hover:text-gray-600 transition-colors"
           style={{
             left: '1340px',
-            top: '415px'
+            top: '415px',
+            zIndex: 30
           }}
+          onClick={handleCardRotation}
         >
           T
         </div>
@@ -459,6 +469,7 @@ export default function Home() {
           onClick={() => {
             console.log('T clicked! Current mode:', isDesignMode);
             setIsDesignMode(!isDesignMode);
+            handleCardRotation();
           }}
         >
           T
@@ -733,7 +744,10 @@ export default function Home() {
             left: '1340px',
             top: '219px'
           }}
-          onClick={handleSecondTClick}
+          onClick={(e) => {
+            handleSecondTClick();
+            handleCardRotation();
+          }}
         >
           T
         </div>

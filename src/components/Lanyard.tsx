@@ -29,6 +29,7 @@ interface LanyardProps {
   gravity?: [number, number, number];
   fov?: number;
   transparent?: boolean;
+  onRotateCard?: () => void;
 }
 
 export default function Lanyard({
@@ -36,6 +37,7 @@ export default function Lanyard({
   gravity = [0, -40, 0],
   fov = 20,
   transparent = true,
+  onRotateCard,
 }: LanyardProps) {
   return (
     <div className="lanyard-wrapper">
@@ -48,7 +50,7 @@ export default function Lanyard({
       >
         <ambientLight intensity={Math.PI} />
         <Physics gravity={gravity} timeStep={1 / 60}>
-          <Band />
+          <Band onRotateCard={onRotateCard} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer
@@ -88,9 +90,10 @@ export default function Lanyard({
 interface BandProps {
   maxSpeed?: number;
   minSpeed?: number;
+  onRotateCard?: () => void;
 }
 
-function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
+function Band({ maxSpeed = 50, minSpeed = 0, onRotateCard }: BandProps) {
   // Using "any" for refs since the exact types depend on Rapier's internals
   const band = useRef<any>(null);
   const fixed = useRef<any>(null);
@@ -125,6 +128,7 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
   );
   const [dragged, drag] = useState<false | THREE.Vector3>(false);
   const [hovered, hover] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
 
   const [isSmall, setIsSmall] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
@@ -141,6 +145,38 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
     window.addEventListener("resize", handleResize);
     return (): void => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Trigger rotation when onRotateCard is called
+  useEffect(() => {
+    if (onRotateCard) {
+      const triggerRotation = () => {
+        if (card.current && !isRotating) {
+          // Wake up the physics body first
+          card.current.wakeUp();
+          setIsRotating(true);
+          
+          // Apply a strong rotation impulse
+          setTimeout(() => {
+            if (card.current) {
+              card.current.setAngvel({ 
+                x: 0, 
+                y: 15, // Even stronger rotation
+                z: 0 
+              });
+            }
+          }, 50); // Small delay to ensure physics is active
+          
+          // Reset rotation state after spin completes
+          setTimeout(() => setIsRotating(false), 1000);
+        }
+      };
+      // Replace the function with our trigger
+      Object.defineProperty(window, 'triggerCardRotation', {
+        value: triggerRotation,
+        writable: true
+      });
+    }
+  }, [onRotateCard, isRotating]);
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1]);
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1]);
@@ -193,7 +229,11 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
       band.current.geometry.setPoints(curve.getPoints(32));
       ang.copy(card.current.angvel());
       rot.copy(card.current.rotation());
-      card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z });
+      
+      // Only apply dampening if not actively rotating
+      if (!isRotating) {
+        card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z });
+      }
     }
   });
 

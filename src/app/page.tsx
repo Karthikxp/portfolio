@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { HyperText } from "@/components/magicui/hyper-text";
 import TiltedCard from "@/components/TiltedCard";
+import Lanyard from "@/components/Lanyard";
 
 export default function Home() {
   const [showHoverImage, setShowHoverImage] = useState(false);
@@ -252,6 +253,20 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative">
+      {/* Lanyard Component */}
+      <div 
+        className="absolute"
+        style={{
+          left: '631px',
+          top: '-120px',
+          width: '800px',
+          height: '900px',
+          zIndex: 10
+        }}
+      >
+        <Lanyard position={[0, 0, 20]} gravity={[0, -40, 0]} />
+      </div>
+
       <div 
         className="absolute text-black"
         style={{
@@ -368,7 +383,8 @@ export default function Home() {
         style={{
           left: '50%',
           top: '75%',
-          transform: 'translate(-50%, -50%)'
+          transform: 'translate(-50%, -50%)',
+          zIndex: 20
         }}
         onClick={() => {
           const targetPosition = 600;

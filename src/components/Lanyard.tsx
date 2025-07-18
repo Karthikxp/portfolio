@@ -129,6 +129,8 @@ function Band({ maxSpeed = 50, minSpeed = 0, onRotateCard }: BandProps) {
   const [dragged, drag] = useState<false | THREE.Vector3>(false);
   const [hovered, hover] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
+  const [strapTwist, setStrapTwist] = useState(0);
+  const strapTwistRef = useRef(0);
 
   const [isSmall, setIsSmall] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
@@ -150,24 +152,51 @@ function Band({ maxSpeed = 50, minSpeed = 0, onRotateCard }: BandProps) {
   useEffect(() => {
     if (onRotateCard) {
       const triggerRotation = () => {
+        console.log('Card rotation triggered!'); // Debug log
         if (card.current && !isRotating) {
-          // Wake up the physics body first
-          card.current.wakeUp();
+          console.log('Applying rotation forces!'); // Debug log
+          // Wake up all physics bodies
+          [card, j1, j2, j3].forEach((ref) => ref.current?.wakeUp());
           setIsRotating(true);
+          setStrapTwist(1); // Start strap twist animation
+          strapTwistRef.current = 0;
           
-          // Apply a strong rotation impulse
+          // Apply a strong rotation impulse to card
           setTimeout(() => {
             if (card.current) {
+              console.log('Setting card angular velocity!'); // Debug log
               card.current.setAngvel({ 
-                x: 0, 
-                y: 15, // Even stronger rotation
-                z: 0 
+                x: 2, 
+                y: 15, // Much stronger card rotation
+                z: 2 
               });
             }
-          }, 50); // Small delay to ensure physics is active
+          }, 50);
           
-          // Reset rotation state after spin completes
-          setTimeout(() => setIsRotating(false), 1000);
+          // Apply delayed twist effects to strap joints (much stronger)
+          setTimeout(() => {
+            if (j3.current) {
+              j3.current.setAngvel({ x: 5, y: 12, z: 5 }); // Much stronger closest to card
+            }
+          }, 100);
+          
+          setTimeout(() => {
+            if (j2.current) {
+              j2.current.setAngvel({ x: 3, y: 8, z: 3 }); // Strong middle joint
+            }
+          }, 200);
+          
+          setTimeout(() => {
+            if (j1.current) {
+              j1.current.setAngvel({ x: 2, y: 5, z: 2 }); // Noticeable near anchor
+            }
+          }, 300);
+          
+          // Reset rotation state after animation completes
+          setTimeout(() => {
+            setIsRotating(false);
+            setStrapTwist(0);
+          }, 1200);
         }
       };
       // Replace the function with our trigger
@@ -229,6 +258,39 @@ function Band({ maxSpeed = 50, minSpeed = 0, onRotateCard }: BandProps) {
       band.current.geometry.setPoints(curve.getPoints(32));
       ang.copy(card.current.angvel());
       rot.copy(card.current.rotation());
+      
+      // Apply strap twist animation during rotation
+      if (isRotating && strapTwist > 0) {
+        strapTwistRef.current += delta * 8; // Twist animation speed
+        
+        // Add strong oscillating forces to strap joints for visible twist effect
+        if (j1.current) {
+          const twist1 = Math.sin(strapTwistRef.current) * 8;
+          j1.current.setAngvel({ 
+            x: j1.current.angvel().x + twist1, 
+            y: j1.current.angvel().y + twist1 * 0.5, 
+            z: j1.current.angvel().z + twist1 * 2 
+          });
+        }
+        
+        if (j2.current) {
+          const twist2 = Math.sin(strapTwistRef.current + 1) * 12;
+          j2.current.setAngvel({ 
+            x: j2.current.angvel().x + twist2, 
+            y: j2.current.angvel().y + twist2 * 0.7, 
+            z: j2.current.angvel().z + twist2 * 2.5 
+          });
+        }
+        
+        if (j3.current) {
+          const twist3 = Math.sin(strapTwistRef.current + 2) * 15;
+          j3.current.setAngvel({ 
+            x: j3.current.angvel().x + twist3, 
+            y: j3.current.angvel().y + twist3 * 0.8, 
+            z: j3.current.angvel().z + twist3 * 3 
+          });
+        }
+      }
       
       // Only apply dampening if not actively rotating
       if (!isRotating) {

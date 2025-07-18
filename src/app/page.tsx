@@ -42,6 +42,9 @@ export default function Home() {
   // State for project cycling (0: Sidemen, 1: C Sar, 2: Apts)
   const [projectState, setProjectState] = useState(0);
 
+  // State for Sentnl/Bunk Buddy toggle
+  const [isBunkBuddy, setIsBunkBuddy] = useState(false);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientX, clientY } = e;
     const dx = clientX - prevCursorPosition.current.x;
@@ -257,6 +260,11 @@ export default function Home() {
     if ((window as any).triggerCardRotation) {
       (window as any).triggerCardRotation();
     }
+  }, []);
+
+  // Handle Sentnl/Bunk Buddy toggle
+  const handleSentnlToggle = useCallback(() => {
+    setIsBunkBuddy((prev) => !prev);
   }, []);
 
   return (
@@ -792,8 +800,14 @@ export default function Home() {
             fontSize: '17px'
           }}
         >
-          Developing a financial forecasting app that leverages live economic releases, debt indicators, income data, and market <br/>
-          sentiment — fine-tuned with historical data — to predict daily market trends.
+          {isBunkBuddy ? (
+            'A cool app for students to coordinate and skip classes together in style.'
+          ) : (
+            <>
+              Developing a financial forecasting app that leverages live economic releases, debt indicators, income data, and market <br/>
+              sentiment — fine-tuned with historical data — to predict daily market trends.
+            </>
+          )}
         </div>
 
         {/* Sentnl Interactive Section */}
@@ -815,28 +829,41 @@ export default function Home() {
             className="absolute rounded-[5.68px] border-black border-solid border-[1px] box-border h-[196px] w-[196px] transition-all duration-300 hover:scale-105"
           />
 
-          {/* Sentnl Text */}
+          {/* Sentnl/Bunk Buddy Text */}
           <div 
             className="absolute text-black pointer-events-none"
             style={{
-              left: '60px',
+              left: isBunkBuddy ? '35px' : '60px',
               top: '86px',
-              width: '97px',
+              width: isBunkBuddy ? '145px' : '97px',
               fontSize: '22px',
               fontFamily: 'Dirtyline, sans-serif'
             }}
           >
-            Sentnl
+            <HyperText
+              className="text-black !text-[22px] !font-normal !py-0"
+              style={{ 
+                fontFamily: 'Dirtyline, sans-serif !important'
+              }}
+              duration={800}
+              animateOnHover={false}
+              startOnView={false}
+              key={isBunkBuddy ? 'bunkbuddy' : 'sentnl'}
+            >
+              {isBunkBuddy ? 'Bunk Buddy' : 'Sentnl'}
+            </HyperText>
           </div>
         </div>
 
         {/* Second Rotated T */}
         <div 
-          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0]"
+          className="w-[17px] absolute text-[43.77px] tracking-[0.13em] bubbler-one-font text-black text-left inline-block [transform:_rotate(90deg)] [transform-origin:0_0] cursor-pointer hover:text-gray-600 transition-colors"
           style={{
             left: '1340px',
-            top: '219px'
+            top: '219px',
+            zIndex: 30
           }}
+          onClick={handleSentnlToggle}
         >
           T
         </div>
@@ -989,11 +1016,11 @@ export default function Home() {
         />
       )}
 
-      {/* Floating Image on Sentnl Hover */}
+      {/* Floating Image on Sentnl/Bunk Buddy Hover */}
       {showSentnlImage && (
         <img
-          src="/sentnl.png"
-          alt="Sentnl"
+          src={isBunkBuddy ? "/bunkbuddy.png" : "/sentnl.png"}
+          alt={isBunkBuddy ? "Bunk Buddy" : "Sentnl"}
           className="fixed object-cover pointer-events-none z-50 rounded-lg shadow-2xl"
           style={{
             left: `${sentnlCursorPosition.x}px`,
